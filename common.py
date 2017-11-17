@@ -14,7 +14,7 @@ maxhop = 25
 # A request that will trigger the great firewall but will NOT cause
 # the web server to process the connection.  You probably want it here
 
-triggerfetch = "GET /search?q=falun+gong HTTP/1.1\r\nhost: www.google.com\r\ntrigger"
+triggerfetch = "GET /?falun+gong HTTP/1.1\r\nhost: www.google.com\r\ntrigger"
 
 # A couple useful functions that take scapy packets
 def isRST(p):
@@ -158,7 +158,7 @@ class PacketUtils:
     # "FIREWALL" if it is behind the Great Firewall
     def ping(self, target):
         # self.send_msg([triggerfetch], dst=target, syn=True)
-        sourcePort = random.randint(2000, 3000)
+        sourcePort = random.randint(2000, 30000)
         PacketUtils.send_pkt(self, payload=None, ttl=32, flags="S",
                  seq=None, ack=None,
                  sport=sourcePort, dport=80,ipid=None,
