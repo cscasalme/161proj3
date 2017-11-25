@@ -203,10 +203,12 @@ class PacketUtils:
     def traceroute(self, target, hops):
 	list_of_ips = []
         rst_requests = []
-
+        
+	seq1 = random.randint(1, 31313131)
+        ack1 = random.randint(1, 31313131)
 	sourcePort = random.randint(2000, 30000)	
         PacketUtils.send_pkt(self, payload=None, ttl=64, flags="S",
-        		seq=None, ack=None,
+        		seq=seq1, ack=ack1,
                         sport=sourcePort, dport=80, ipid=None,
                         dip=None, debug=False)
 
@@ -231,17 +233,18 @@ class PacketUtils:
 		ip = None
 		rst = False
                 # Get the packets ip to see if there was a hop
-                if ip not in list_of_ips:
-			if isRST(data_packet):
-		        	rst = True
-                    	elif isICMP(data_packet) and isTimeExceeded(data_packet):
-                        	ip = data_packet[IP].src
-			list_of_ips.append(ip)
-                	rst_requests.append(rst)
-		data_packet = PacketUtils.get_pkt(self, timeout=1)
-	    if ip not in list_of_ips:
-	        list_of_ips.append(ip)
+		if isRST(data_packet):
+		        rst = True
+                if isICMP(data_packet) and isTimeExceeded(data_packet):
+                        ip = data_packet[IP].src
+		list_of_ips.append(ip)
                 rst_requests.append(rst)
+		if rst:
+			PacketUtils.send_pkt(self, payload=None, ttl=64, flags="S",
+                        	seq=seq1, ack=ack1,
+                        	sport=sourcePort, dport=80, ipid=None,
+                        	dip=None, debug=False)
+		data_packet = PacketUtils.get_pkt(self, timeout=1)
 
         return (list_of_ips, rst_requests)
 
