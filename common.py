@@ -206,15 +206,9 @@ class PacketUtils:
 
         # send syn
         sourcePort = random.randint(2000, 30000)
-	'''PacketUtils.send_pkt(self, payload=None, ttl=64, flags="S",
-                                seq=None, ack=None,
-                                sport=sourcePort, dport=80, ipid=None,
-                                dip=None, debug=False)
-
-        packet = PacketUtils.get_pkt(self, timeout=5)
-        seq = packet[TCP].seq
-        ack = packet[TCP].ack'''
         for ttl in range(1, hops):
+	    ip = None
+	    rst = False
             PacketUtils.send_pkt(self, payload=None, ttl=64, flags="S",
                                 seq=None, ack=None,
                                 sport=sourcePort, dport=80, ipid=None,
@@ -239,21 +233,14 @@ class PacketUtils:
                 rst_requests.append(False)
             while data_packet:
                 # Get the packets ip to see if there was a hop
-                ip = data_packet[IP].src
-                if ip not in list_of_ips:
-                    if isRST(data_packet):
-                        print("RST")
-                        list_of_ips.append(None)
-                        rst_requests.append(True)
-                    elif isICMP(data_packet) and isTimeExceeded(data_packet):
-                        print ("ICMP")
-                        list_of_ips.append(ip)
-                        rst_requests.append(False)
-                    else:
-			print ("IDK")
-                        list_of_ips.append(ip)
-                        rst_requests.append(False)
+                if isRST(data_packet):
+                        rst = True
+                elif isICMP(data_packet) and isTimeExceeded(data_packet):
+                        ip = data_packet[IP].src
                 data_packet = PacketUtils.get_pkt(self, timeout=1)
+	    if ip not in list_of_ips:
+	        list_of_ips.append(ip)
+                rst_requests.append(rst)
 
         return (list_of_ips, rst_requests)
 
