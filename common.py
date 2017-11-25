@@ -207,7 +207,7 @@ class PacketUtils:
 	seq1 = random.randint(1, 31313131)
         ack1 = random.randint(1, 31313131)
 	sourcePort = random.randint(2000, 30000)	
-        PacketUtils.send_pkt(self, payload=None, ttl=64, flags="S",
+        PacketUtils.send_pkt(self, payload=None, ttl=100, flags="S",
         		seq=seq1, ack=ack1,
                         sport=sourcePort, dport=80, ipid=None,
                         dip=None, debug=False)
@@ -225,30 +225,29 @@ class PacketUtils:
             PacketUtils.send_pkt(self, payload=triggerfetch, ttl=ttl, flags="PA", seq=ack,
                                 ack=seq+1, sport=sourcePort, dport=80, ipid=None, dip=None, debug=False)
 
-            data_packet = PacketUtils.get_pkt(self, timeout=1)
+            data_packet = PacketUtils.get_pkt(self, timeout=2)
 	    if data_packet is None:
 	    	list_of_ips.append(None)
                 rst_requests.append(False)
+	    ip = None
+            rst = False
             while data_packet:
-		ip = None
-		rst = False
+		print (data_packet[IP].src)
+		print (isRST(data_packet))
                 # Get the packets ip to see if there was a hop
-		if isRST(data_packet):
+		if isRST(data_packet):	
 		        rst = True
                 if isICMP(data_packet) and isTimeExceeded(data_packet):
                         ip = data_packet[IP].src
-		if ip not in list_of_ips and not rst:
-			list_of_ips.append(ip)
-                	rst_requests.append(rst)
-		elif rst:
-			list_of_ips.append(ip)
-                        rst_requests.append(rst)
-		if rst:
-			PacketUtils.send_pkt(self, payload=None, ttl=64, flags="S",
-                        	seq=seq1, ack=ack1,
-                        	sport=sourcePort, dport=80, ipid=None,
-                        	dip=None, debug=False)
 		data_packet = PacketUtils.get_pkt(self, timeout=1)
+	    
+	    list_of_ips.append(ip)
+            rst_requests.append(rst)
+	    if rst:
+		PacketUtils.send_pkt(self, payload=None, ttl=100, flags="S",
+                        seq=seq1, ack=ack1,
+                        sport=sourcePort, dport=80, ipid=None,
+                        dip=None, debug=False)
 
         return (list_of_ips, rst_requests)
 
