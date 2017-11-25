@@ -15,6 +15,7 @@ maxhop = 25
 # the web server to process the connection.  You probably want it here
 
 triggerfetch = "GET /?falun+gong HTTP/1.1\r\nhost: www.google.com\r\ntrigger"
+triggerfetch2 = "GET /?falun+gong HTTP/1.1\r\nhost: www.google.com\r\n\r\n"
 
 # A couple useful functions that take scapy packets
 def isRST(p):
@@ -200,4 +201,59 @@ class PacketUtils:
     # The second list is T/F 
     # if there is a RST back for that particular request
     def traceroute(self, target, hops):
-        return "NEED TO IMPLEMENT"
+	list_of_ips = []
+        rst_requests = []
+
+        # send syn
+        sourcePort = random.randint(2000, 30000)
+	'''PacketUtils.send_pkt(self, payload=None, ttl=64, flags="S",
+                                seq=None, ack=None,
+                                sport=sourcePort, dport=80, ipid=None,
+                                dip=None, debug=False)
+
+        packet = PacketUtils.get_pkt(self, timeout=5)
+        seq = packet[TCP].seq
+        ack = packet[TCP].ack'''
+        for ttl in range(1, hops):
+            PacketUtils.send_pkt(self, payload=None, ttl=64, flags="S",
+                                seq=None, ack=None,
+                                sport=sourcePort, dport=80, ipid=None,
+                                dip=None, debug=False)
+
+            packet = PacketUtils.get_pkt(self, timeout=2)
+            if packet is not None:
+                seq = packet[TCP].seq
+                ack = packet[TCP].ack
+
+            # Send 3 packets to server with modified TTL
+            PacketUtils.send_pkt(self, payload=triggerfetch2, ttl=ttl, flags="PA", seq=ack,
+                                ack=seq+1, sport=sourcePort, dport=80, ipid=None, dip=None, debug=False)
+            PacketUtils.send_pkt(self, payload=triggerfetch2, ttl=ttl, flags="PA", seq=ack,
+                                ack=seq+1, sport=sourcePort, dport=80, ipid=None, dip=None, debug=False)
+            PacketUtils.send_pkt(self, payload=triggerfetch2, ttl=ttl, flags="PA", seq=ack,
+                                ack=seq+1, sport=sourcePort, dport=80, ipid=None, dip=None, debug=False)
+
+            data_packet = PacketUtils.get_pkt(self, timeout=2)
+	    if data_packet is None:
+	    	list_of_ips.append(None)
+                rst_requests.append(False)
+            while data_packet:
+                # Get the packets ip to see if there was a hop
+                ip = data_packet[IP].src
+                if ip not in list_of_ips:
+                    if isRST(data_packet):
+                        print("RST")
+                        list_of_ips.append(None)
+                        rst_requests.append(True)
+                    elif isICMP(data_packet) and isTimeExceeded(data_packet):
+                        print ("ICMP")
+                        list_of_ips.append(ip)
+                        rst_requests.append(False)
+                    else:
+			print ("IDK")
+                        list_of_ips.append(ip)
+                        rst_requests.append(False)
+                data_packet = PacketUtils.get_pkt(self, timeout=1)
+
+        return (list_of_ips, rst_requests)
+
