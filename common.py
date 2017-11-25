@@ -237,8 +237,12 @@ class PacketUtils:
 		        rst = True
                 if isICMP(data_packet) and isTimeExceeded(data_packet):
                         ip = data_packet[IP].src
-		list_of_ips.append(ip)
-                rst_requests.append(rst)
+		if ip not in list_of_ips and not rst:
+			list_of_ips.append(ip)
+                	rst_requests.append(rst)
+		elif rst:
+			list_of_ips.append(ip)
+                        rst_requests.append(rst)
 		if rst:
 			PacketUtils.send_pkt(self, payload=None, ttl=64, flags="S",
                         	seq=seq1, ack=ack1,
