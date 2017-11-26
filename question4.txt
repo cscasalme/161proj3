@@ -8,7 +8,11 @@ each char is sent in its own individual packet (the seq number is incremented fo
 along with the char packet is a dummy packet with a lower ttl (we just sent an identical char packet)  
 then we wait for the server's response
 
-. This works to evade the firewall because the dummy packets make it seem like the GET request for the forbidden content is actually just gibberish because of the identical chars sent. No RST packets will be sent. But these dummy packets expire before all the packets reach the server. Thus the server actually gets only the packets we wanted to send and it assembles the fragments and sees a GET request.
+This works to evade the firewall because the dummy packets make it seem like
+the GET request for the forbidden content is actually just gibberish because
+of the identical chars sent. No RST packets will be sent. But these dummy packets
+expire before all the packets reach the server. Thus the server actually gets only
+the packets we wanted to send and it assembles the fragments and sees a GET request.
 
 Then the server sends the reply and we read that reply and return it.
 
