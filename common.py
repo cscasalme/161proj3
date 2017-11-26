@@ -152,8 +152,43 @@ class PacketUtils:
     # ttl is a ttl which triggers the Great Firewall but is before the
     # server itself (from a previous traceroute incantation
     def evade(self, target, msg, ttl):
-        return "NEED TO IMPLEMENT"
-        
+	ret_string = ""
+	
+	sourcePort = random.randint(2000, 30000)
+        PacketUtils.send_pkt(self, payload=None, ttl=32, flags="S",
+            seq=None, ack=None,
+            sport=sourcePort, dport=80, ipid=None,
+            dip=None, debug=False)
+        packet = PacketUtils.get_pkt(self, timeout=5)
+        if packet is None:
+            return ""
+        else:
+            seq = packet[TCP].seq
+            ack = packet[TCP].ack
+
+            PacketUtils.send_pkt(self, payload=None, ttl=32, flags="A", seq=ack,
+                                ack=seq+1, sport=sourcePort, dport=80,ipid=None, dip=None, debug=False)
+
+            char_list = list(msg)
+
+            index = 0
+            for char in char_list:
+                print (char)
+                PacketUtils.send_pkt(self, payload=char, ttl=32, flags="A", seq=ack + index,
+                                ack=seq+1, sport=sourcePort, dport=80,ipid=None, dip=None, debug=False)
+                PacketUtils.send_pkt(self, payload=char, ttl=ttl, flags="A", seq=ack + index,
+                                ack=seq+1, sport=sourcePort, dport=80,ipid=None, dip=None, debug=False)
+		index += 1
+
+	    data_packet = PacketUtils.get_pkt(self, timeout=5)
+	    while data_packet is not None:
+		if 'Raw' in data_packet:
+	    		print ("PAYLOAD")
+			ret_string += str(data_packet['Raw'].load)
+		data_packet = PacketUtils.get_pkt(self, timeout=5)
+
+            return ret_string
+ 
     # Returns "DEAD" if server isn't alive,
     # "LIVE" if teh server is alive,
     # "FIREWALL" if it is behind the Great Firewall
