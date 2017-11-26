@@ -216,7 +216,22 @@ class PacketUtils:
 	seq = packet[TCP].seq
         ack = packet[TCP].ack
 	# send syn
+	ip = None
+        rst = False
         for ttl in range(1, hops):
+	    if rst:
+                sourcePort = random.randint(2000, 30000)
+                PacketUtils.send_pkt(self, payload=None, ttl=100, flags="S",
+                        seq=None, ack=None,
+                        sport=sourcePort, dport=80, ipid=None,
+                        dip=None, debug=False)
+                packet = PacketUtils.get_pkt(self, timeout=20)
+		if packet is None:
+			list_of_ips.append(None)
+                	rst_requests.append(False)
+                	continue
+                seq = packet[TCP].seq
+                ack = packet[TCP].ack
             # Send 3 packets to server with modified TTL
             PacketUtils.send_pkt(self, payload=triggerfetch, ttl=ttl, flags="PA", seq=ack,
                                 ack=seq+1, sport=sourcePort, dport=80, ipid=None, dip=None, debug=False)
@@ -244,15 +259,6 @@ class PacketUtils:
 	    
 	    list_of_ips.append(ip)
             rst_requests.append(rst)
-	    if rst:
-		sourcePort = random.randint(2000, 30000)
-		PacketUtils.send_pkt(self, payload=None, ttl=100, flags="S",
-                        seq=None, ack=None,
-                        sport=sourcePort, dport=80, ipid=None,
-                        dip=None, debug=False)
-		packet = PacketUtils.get_pkt(self, timeout=5)
-        	seq = packet[TCP].seq
-        	ack = packet[TCP].ack
 
         return (list_of_ips, rst_requests)
 
