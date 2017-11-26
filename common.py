@@ -173,7 +173,6 @@ class PacketUtils:
 
             index = 0
             for char in char_list:
-                print (char)
                 PacketUtils.send_pkt(self, payload=char, ttl=32, flags="A", seq=ack + index,
                                 ack=seq+1, sport=sourcePort, dport=80,ipid=None, dip=None, debug=False)
                 PacketUtils.send_pkt(self, payload=char, ttl=ttl, flags="A", seq=ack + index,
@@ -183,7 +182,6 @@ class PacketUtils:
 	    data_packet = PacketUtils.get_pkt(self, timeout=5)
 	    while data_packet is not None:
 		if 'Raw' in data_packet:
-	    		print ("PAYLOAD")
 			ret_string += str(data_packet['Raw'].load)
 		data_packet = PacketUtils.get_pkt(self, timeout=5)
 
@@ -283,8 +281,6 @@ class PacketUtils:
 	    ip = None
             rst = False
             while data_packet:
-		print (data_packet[IP].src)
-		print (isRST(data_packet))
                 # Get the packets ip to see if there was a hop
 		if isRST(data_packet):	
 		        rst = True
