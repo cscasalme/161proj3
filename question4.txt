@@ -1,2 +1,17 @@
-Describe (in 2-3 paragraphs) your evasion strategy:
+Describe (in 2-3 paragraphs) your evasion strategy: 
+
+Writeup for Question 4:
+
+The evasion technique we used was to:
+fragment the payload (message in msg.txt is broken up into chars)
+each char is sent in its own individual packet (the seq number is incremented for each char sent since we are sending a payload)
+along with the char packet is a dummy packet with a lower ttl (we just sent an identical char packet)  
+then we wait for the server's response
+
+. This works to evade the firewall because the dummy packets make it seem like the GET request for the forbidden content is actually just gibberish because of the identical chars sent. No RST packets will be sent. But these dummy packets expire before all the packets reach the server. Thus the server actually gets only the packets we wanted to send and it assembles the fragments and sees a GET request.
+
+Then the server sends the reply and we read that reply and return it.
+
+
+
 
